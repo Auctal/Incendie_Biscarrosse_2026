@@ -1,25 +1,8 @@
 {
-  "type": "FeatureCollection",
-  "properties": {
-    "_note": "FICHIER D'EXEMPLE — remplacez ce contenu par Batiment_detruit.geojson réel. Chaque feature peut porter les champs: adresse, description, source, media_url, media_type (image|video), date_confirmation. Ne publiez que des informations vérifiées."
-  },
-  "features": [
-    {
-      "type": "Feature",
-      "properties": {
-        "adresse": "Exemple : Lieu-dit du Gaillon (FICTIF)",
-        "description": "Bâtiment d'exemple présenté comme détruit d'après une photo aérienne fictive. À remplacer par une donnée réelle et vérifiée.",
-        "source": "Exemple de démonstration",
-        "media_url": "",
-        "media_type": "image",
-        "date_confirmation": "2026-07-24",
-        "exemple": true
-      },
-      "geometry": {
-        "type": "Point",
-        "coordinates": [-1.2550, 44.4650]
-      }
-    },
-{ "type": "Feature", "properties": { "adresse": "414 Rue de Cantegrit", "description": null, "source": "Biscarrosse ma ville", "media_url": "https://scontent-cdg4-2.xx.fbcdn.net/v/t39.30808-6/754097603_2555118224909109_5222925896082579292_n.jpg?stp=dst-jpg_tt6&cstp=mx912x2000&ctp=s912x2000&_nc_cat=1&ccb=1-7&_nc_sid=aa7b47&_nc_ohc=oiKICiGTQ0oQ7kNvwGQtlzB&_nc_oc=AdrwBKhS9hVKimwjfQOltdKKaOoTffn8wLEXhl8tFkV3ePztAOdlJWfvsMoeqqIqVE_rPp-_twbUOySCSxz_GJ8m&_nc_zt=23&_nc_ht=scontent-cdg4-2.xx&_nc_gid=h9He4PjdKY_cY_mRXcyuqw&_nc_ss=7b2a8&oh=00_AQDNeZiM4s_7Zcrx1KxGWVa_Y9Dpn3Y0yHqyfVQwWnRjkQ&oe=6A69141D/", "media_type": null, "date_confirmation": null, "exemple": false }, "geometry": { "type": "Point", "coordinates": [ -1.14983870994694, 44.386433648677468 ] } }
+"type": "FeatureCollection",
+"properties": { "_note": "FICHIER D'EXEMPLE — remplacez ce contenu par Batiment_detruit.geojson réel. Chaque feature peut porter les champs: adresse, description, source, media_url, media_type (image|video), date_confirmation. Ne publiez que des informations vérifiées." },
+"name": "batiments_detruits",
+"features": [
+{ "type": "Feature", "properties": { "adresse": "414 Rue de Cantegrit", "description": null, "source": "Biscarrosse ma ville", "media_url": "https://scontent-cdg4-2.xx.fbcdn.net/v/t39.30808-6/754097603_2555118224909109_5222925896082579292_n.jpg?stp=dst-jpg_tt6&cstp=mx912x2000&ctp=s912x2000&_nc_cat=1&ccb=1-7&_nc_sid=aa7b47&_nc_ohc=oiKICiGTQ0oQ7kNvwGQtlzB&_nc_oc=AdrwBKhS9hVKimwjfQOltdKKaOoTffn8wLEXhl8tFkV3ePztAOdlJWfvsMoeqqIqVE_rPp-_twbUOySCSxz_GJ8m&_nc_zt=23&_nc_ht=scontent-cdg4-2.xx&_nc_gid=oVh9r-BQ90zU5BNQRPQxbg&_nc_ss=7b2a8&oh=00_AQDK83tIT82jV_tTCW0-NTAl-Z8VDYqKpfD_ktb6hJ4WoQ&oe=6A69141D", "media_type": null, "date_confirmation": null, "exemple": false }, "geometry": { "type": "Point", "coordinates": [ -1.14983870994694, 44.386433648677468 ] } }
 ]
 }
