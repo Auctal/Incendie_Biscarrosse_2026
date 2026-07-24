@@ -20,6 +20,6 @@
         "coordinates": [-1.2550, 44.4650]
       }
     },
-{ "type": "Feature", "properties": { "adresse": "414 Rue de Cantegrit", "description": null, "source": "Biscarrosse ma ville", "media_url": "https:\/\/www.facebook.com\/groups\/BiscarrosseMaVille\/permalink\/27830179963279428\/", "media_type": null, "date_confirmation": null, "exemple": false }, "geometry": { "type": "Point", "coordinates": [ -1.14983870994694, 44.386433648677468 ] } }
+{ "type": "Feature", "properties": { "adresse": "414 Rue de Cantegrit", "description": null, "source": "Biscarrosse ma ville", "media_url": "https://scontent-cdg4-2.xx.fbcdn.net/v/t39.30808-6/754097603_2555118224909109_5222925896082579292_n.jpg?stp=dst-jpg_tt6&cstp=mx912x2000&ctp=s912x2000&_nc_cat=1&ccb=1-7&_nc_sid=aa7b47&_nc_ohc=oiKICiGTQ0oQ7kNvwGQtlzB&_nc_oc=AdrwBKhS9hVKimwjfQOltdKKaOoTffn8wLEXhl8tFkV3ePztAOdlJWfvsMoeqqIqVE_rPp-_twbUOySCSxz_GJ8m&_nc_zt=23&_nc_ht=scontent-cdg4-2.xx&_nc_gid=h9He4PjdKY_cY_mRXcyuqw&_nc_ss=7b2a8&oh=00_AQDNeZiM4s_7Zcrx1KxGWVa_Y9Dpn3Y0yHqyfVQwWnRjkQ&oe=6A69141D/", "media_type": null, "date_confirmation": null, "exemple": false }, "geometry": { "type": "Point", "coordinates": [ -1.14983870994694, 44.386433648677468 ] } }
 ]
 }
