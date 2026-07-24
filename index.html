@@ -282,14 +282,23 @@ section.map-section {
 .popup-tag.destroyed { background: #f6dede; color: var(--danger); }
 .popup-tag.intact { background: #dfeee3; color: var(--safe); }
 .popup-desc { font-size: 0.86rem; margin: 6px 0; color: var(--ink-soft); }
-.popup-media img, .popup-media video {
+.popup-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-decoration: none;
+  color: #fff;
+  background: var(--steel);
+  padding: 6px 10px;
   border-radius: 6px;
-  margin-top: 6px;
-  cursor: zoom-in;
-  max-height: 150px;
-  width: 100%;
-  object-fit: cover;
+  transition: background 0.15s ease;
 }
+.popup-link:hover { background: var(--steel-dark); }
+.popup-link .arrow { font-size: 0.9rem; }
 .popup-note {
   font-size: 0.72rem;
   color: var(--alert-dark);
@@ -439,26 +448,6 @@ button.submit-btn:focus-visible { outline: 3px solid var(--amber); outline-offse
 #form-status.ok { color: var(--safe); }
 #form-status.err { color: var(--danger); }
 
-/* ---------- Modale média ---------- */
-.media-modal {
-  position: fixed; inset: 0;
-  background: rgba(10, 12, 13, 0.88);
-  display: none;
-  align-items: center; justify-content: center;
-  z-index: 2000;
-  padding: 30px;
-}
-.media-modal.open { display: flex; }
-.media-modal .media-modal-content {
-  max-width: 90vw; max-height: 88vh;
-  border-radius: 8px;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-}
-.media-modal .close-btn {
-  position: absolute; top: 18px; right: 22px;
-  color: #fff; font-family: var(--font-display);
-  font-size: 1.6rem; background: none; border: none; cursor: pointer;
-}
 
 /* ---------- Pied de page ---------- */
 footer.site-footer {
@@ -627,12 +616,6 @@ footer.site-footer .container { display: flex; flex-direction: column; gap: 8px;
   </div>
 </footer>
 
-<!-- Modale média (agrandissement photo/vidéo) -->
-<div class="media-modal" id="media-modal">
-  <button class="close-btn" id="media-modal-close" aria-label="Fermer">✕</button>
-  <div class="media-modal-content" id="media-modal-content"></div>
-</div>
-
 <!-- Leaflet -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
@@ -697,16 +680,10 @@ footer.site-footer .container { display: flex; flex-direction: column; gap: 8px;
   function buildMediaHtml(props) {
     if (!props.media_url) return "";
     const type = (props.media_type || "").toLowerCase();
-    if (type === "video") {
-      return `<div class="popup-media">
-        <video src="${escapeHtml(props.media_url)}" controls muted
-          onclick="window.__openMediaModal && window.__openMediaModal('${escapeHtml(props.media_url)}','video')"></video>
-      </div>`;
-    }
-    return `<div class="popup-media">
-      <img src="${escapeHtml(props.media_url)}" alt="Photo source"
-        onclick="window.__openMediaModal && window.__openMediaModal('${escapeHtml(props.media_url)}','image')">
-    </div>`;
+    const label = type === "video" ? "Voir la vidéo source" : "Voir la photo source";
+    return `<a class="popup-link" href="${escapeHtml(props.media_url)}" target="_blank" rel="noopener noreferrer">
+      ${label} <span class="arrow">↗</span>
+    </a>`;
   }
 
   function buildPopup(props, kind) {
@@ -823,31 +800,6 @@ footer.site-footer .container { display: flex; flex-direction: column; gap: 8px;
   document.getElementById("toggle-intact").addEventListener("change", (e) => {
     if (!intactLayer) return;
     e.target.checked ? map.addLayer(intactLayer) : map.removeLayer(intactLayer);
-  });
-
-  // ---------------------------------------------------------
-  // Modale média (agrandissement des photos/vidéos)
-  // ---------------------------------------------------------
-  const modal = document.getElementById("media-modal");
-  const modalContent = document.getElementById("media-modal-content");
-
-  window.__openMediaModal = function (url, type) {
-    modalContent.innerHTML =
-      type === "video"
-        ? `<video src="${escapeHtml(url)}" controls autoplay class="media-modal-content"></video>`
-        : `<img src="${escapeHtml(url)}" alt="Média agrandi" class="media-modal-content">`;
-    modal.classList.add("open");
-  };
-
-  document.getElementById("media-modal-close").addEventListener("click", () => {
-    modal.classList.remove("open");
-    modalContent.innerHTML = "";
-  });
-  modal.addEventListener("click", (e) => {
-    if (e.target === modal) {
-      modal.classList.remove("open");
-      modalContent.innerHTML = "";
-    }
   });
 
   // ---------------------------------------------------------
