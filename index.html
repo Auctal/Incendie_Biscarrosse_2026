@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Biscarrosse — Suivi collaboratif de l'incendie</title>
+<meta name="description" content="Carte collaborative et non officielle de suivi de l'incendie de Biscarrosse : zone touchée, bâtiments détruits, bâtiments intacts. Site informatif, sans garantie d'exactitude.">
+
+<!-- Leaflet -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+/* =========================================================
+   Biscarrosse — Suivi collaboratif de l'incendie
+   Design tokens
+   Couleurs   : --ink #14181A · --paper #F2F1EB · --steel #35526B
+                --alert #E8580C (feu) · --danger #A32424 (détruit)
+                --safe #2F7A4D (intact) · --amber #E8A33D (avertissement)
+   Typo       : Display -> "Barlow Condensed" / Corps -> "Public Sans"
+                Data/mono -> "IBM Plex Mono"
+   ========================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap');
+
+:root {
+  --ink: #14181a;
+  --ink-soft: #43494d;
+  --paper: #f2f1eb;
+  --paper-raised: #ffffff;
+  --line: #d8d4c8;
+  --steel: #35526b;
+  --steel-dark: #223244;
+  --alert: #e8580c;
+  --alert-dark: #b7440a;
+  --danger: #a32424;
+  --safe: #2f7a4d;
+  --amber: #e8a33d;
+  --radius: 10px;
+  --shadow: 0 6px 24px rgba(20, 24, 26, 0.14);
+  --font-display: "Barlow Condensed", sans-serif;
+  --font-body: "Public Sans", sans-serif;
+  --font-mono: "IBM Plex Mono", monospace;
+}
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  color: var(--ink);
+  background: var(--paper);
+  line-height: 1.5;
+}
+
+img, video { max-width: 100%; display: block; }
+
+a { color: var(--steel-dark); }
+
+.container {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* ---------- Bandeau d'avertissement global ---------- */
+.top-banner {
+  background: var(--steel-dark);
+  color: #f2ede0;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  letter-spacing: 0.02em;
+  padding: 9px 0;
+}
+.top-banner .container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  align-items: center;
+}
+.top-banner strong { color: var(--amber); font-weight: 600; }
+
+/* ---------- En-tête ---------- */
+header.site-header {
+  background: var(--steel-dark);
+  color: #fff;
+  padding: 30px 0 26px;
+  border-bottom: 5px solid var(--alert);
+}
+.site-header .container {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.site-header h1 {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(2rem, 4.5vw, 3.1rem);
+  line-height: 0.98;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  margin: 0;
+}
+.site-header h1 span { color: var(--alert); }
+.site-header .subtitle {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  color: #c9d3dc;
+  margin-top: 8px;
+  max-width: 46ch;
+}
+.live-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: rgba(232, 88, 12, 0.14);
+  border: 1px solid var(--alert);
+  color: #ffd7bd;
+  padding: 7px 12px;
+  border-radius: 100px;
+  white-space: nowrap;
+}
+.live-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--alert);
+  box-shadow: 0 0 0 0 rgba(232, 88, 12, 0.7);
+  animation: pulse 1.8s infinite;
+}
+@keyframes pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(232, 88, 12, 0.55); }
+  70%  { box-shadow: 0 0 0 9px rgba(232, 88, 12, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(232, 88, 12, 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .live-dot { animation: none; }
+}
+
+/* ---------- Bloc disclaimer principal ---------- */
+.disclaimer {
+  background: #fbead9;
+  border-top: 1px solid #eecda3;
+  border-bottom: 1px solid #eecda3;
+}
+.disclaimer .container {
+  padding: 16px 20px;
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+.disclaimer .icon {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.4rem;
+  color: var(--alert-dark);
+  border: 2px solid var(--alert-dark);
+  border-radius: 50%;
+  width: 30px; height: 30px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.disclaimer p {
+  margin: 0;
+  font-size: 0.92rem;
+  color: #4a3417;
+}
+.disclaimer strong { color: var(--alert-dark); }
+
+/* ---------- Carte ---------- */
+section.map-section {
+  padding: 26px 0 8px;
+}
+.map-wrap {
+  position: relative;
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--line);
+}
+#map {
+  height: 68vh;
+  min-height: 460px;
+  width: 100%;
+  background: #dfe6ea;
+}
+
+.legend {
+  position: absolute;
+  z-index: 500;
+  bottom: 14px;
+  left: 14px;
+  background: rgba(255, 255, 255, 0.96);
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-size: 0.82rem;
+  box-shadow: 0 3px 14px rgba(0,0,0,0.18);
+  max-width: 230px;
+}
+.legend h3 {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  font-size: 0.82rem;
+  letter-spacing: 0.05em;
+  margin: 0 0 8px;
+  color: var(--ink-soft);
+}
+.legend-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.legend-row:last-child { margin-bottom: 0; }
+.swatch { width: 14px; height: 14px; border-radius: 3px; flex-shrink: 0; }
+.swatch.fire { background: var(--alert); opacity: 0.55; border: 2px solid var(--alert-dark); }
+.swatch.destroyed { background: var(--danger); }
+.swatch.intact { background: var(--safe); }
+
+.map-toolbar {
+  position: absolute;
+  z-index: 500;
+  top: 14px;
+  right: 14px;
+  background: rgba(255,255,255,0.96);
+  border-radius: 8px;
+  padding: 8px;
+  box-shadow: 0 3px 14px rgba(0,0,0,0.18);
+  font-size: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: 190px;
+}
+.map-toolbar label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 6px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+.map-toolbar label:hover { background: #f0efe8; }
+.map-toolbar select {
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  padding: 4px;
+  margin-top: 2px;
+}
+
+.map-meta {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  color: var(--ink-soft);
+  padding: 8px 2px 0;
+}
+
+/* ---------- Popups Leaflet personnalisés ---------- */
+.leaflet-popup-content-wrapper { border-radius: 8px; }
+.popup-card { font-family: var(--font-body); min-width: 220px; }
+.popup-card h4 {
+  margin: 0 0 4px;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  text-transform: uppercase;
+}
+.popup-tag {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 7px;
+  border-radius: 100px;
+  margin-bottom: 6px;
+}
+.popup-tag.destroyed { background: #f6dede; color: var(--danger); }
+.popup-tag.intact { background: #dfeee3; color: var(--safe); }
+.popup-desc { font-size: 0.86rem; margin: 6px 0; color: var(--ink-soft); }
+.popup-media img, .popup-media video {
+  border-radius: 6px;
+  margin-top: 6px;
+  cursor: zoom-in;
+  max-height: 150px;
+  width: 100%;
+  object-fit: cover;
+}
+.popup-note {
+  font-size: 0.72rem;
+  color: var(--alert-dark);
+  background: #fbead9;
+  border-radius: 5px;
+  padding: 5px 7px;
+  margin-top: 6px;
+}
+.popup-source {
+  font-size: 0.72rem;
+  color: var(--ink-soft);
+  margin-top: 6px;
+}
+
+/* ---------- Sections génériques ---------- */
+section { padding: 46px 0; }
+.section-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--steel);
+  margin: 0 0 6px;
+}
+h2.section-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: clamp(1.5rem, 3vw, 2.1rem);
+  margin: 0 0 14px;
+  color: var(--ink);
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 16px;
+  margin-top: 20px;
+}
+.info-card {
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 18px;
+}
+.info-card h3 {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  font-size: 1.05rem;
+  margin: 0 0 8px;
+}
+.info-card p { font-size: 0.88rem; color: var(--ink-soft); margin: 0; }
+.info-card.destroyed { border-top: 4px solid var(--danger); }
+.info-card.intact { border-top: 4px solid var(--safe); }
+.info-card.fire { border-top: 4px solid var(--alert); }
+
+/* ---------- Formulaire de contact ---------- */
+.contact-section { background: var(--steel-dark); color: #eef1f3; }
+.contact-section .section-eyebrow { color: #9fc0d8; }
+.contact-section h2.section-title { color: #fff; }
+.contact-section .lead { color: #c9d3dc; max-width: 62ch; font-size: 0.95rem; }
+
+.contact-grid {
+  display: grid;
+  grid-template-columns: 1.1fr 1.4fr;
+  gap: 30px;
+  margin-top: 26px;
+}
+@media (max-width: 820px) {
+  .contact-grid { grid-template-columns: 1fr; }
+}
+
+.contact-steps { display: flex; flex-direction: column; gap: 14px; }
+.contact-step {
+  display: flex; gap: 12px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  padding: 12px 14px;
+}
+.contact-step .num {
+  font-family: var(--font-mono);
+  color: var(--amber);
+  font-weight: 600;
+}
+.contact-step p { margin: 0; font-size: 0.86rem; color: #d7dde1; }
+
+form#contact-form {
+  background: var(--paper-raised);
+  color: var(--ink);
+  border-radius: var(--radius);
+  padding: 24px;
+  box-shadow: var(--shadow);
+}
+.form-row { margin-bottom: 16px; }
+.form-row label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink-soft);
+  margin-bottom: 5px;
+}
+.form-row input[type="text"],
+.form-row input[type="email"],
+.form-row textarea,
+.form-row input[type="file"] {
+  width: 100%;
+  font-family: var(--font-body);
+  font-size: 0.92rem;
+  padding: 10px 11px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: #fbfaf6;
+  color: var(--ink);
+}
+.form-row textarea { min-height: 90px; resize: vertical; }
+.form-row input:focus, .form-row textarea:focus {
+  outline: 3px solid var(--amber);
+  outline-offset: 1px;
+}
+.form-hint { font-size: 0.76rem; color: #8b8578; margin-top: 4px; }
+
+.form-row.consent { display: flex; align-items: flex-start; gap: 8px; }
+.form-row.consent input { width: auto; margin-top: 3px; }
+.form-row.consent label { font-family: var(--font-body); text-transform: none; letter-spacing: 0; font-size: 0.84rem; color: var(--ink-soft); }
+
+button.submit-btn {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-weight: 700;
+  font-size: 1rem;
+  background: var(--alert);
+  color: #fff;
+  border: none;
+  padding: 12px 22px;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+button.submit-btn:hover { background: var(--alert-dark); }
+button.submit-btn:focus-visible { outline: 3px solid var(--amber); outline-offset: 2px; }
+
+#form-status { margin-top: 12px; font-size: 0.86rem; }
+#form-status.ok { color: var(--safe); }
+#form-status.err { color: var(--danger); }
+
+/* ---------- Modale média ---------- */
+.media-modal {
+  position: fixed; inset: 0;
+  background: rgba(10, 12, 13, 0.88);
+  display: none;
+  align-items: center; justify-content: center;
+  z-index: 2000;
+  padding: 30px;
+}
+.media-modal.open { display: flex; }
+.media-modal .media-modal-content {
+  max-width: 90vw; max-height: 88vh;
+  border-radius: 8px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+}
+.media-modal .close-btn {
+  position: absolute; top: 18px; right: 22px;
+  color: #fff; font-family: var(--font-display);
+  font-size: 1.6rem; background: none; border: none; cursor: pointer;
+}
+
+/* ---------- Pied de page ---------- */
+footer.site-footer {
+  background: #0f171d;
+  color: #9aa7b0;
+  padding: 30px 0;
+  font-size: 0.82rem;
+}
+footer.site-footer strong { color: #d7dde1; }
+footer.site-footer a { color: #cfe0ec; }
+footer.site-footer .container { display: flex; flex-direction: column; gap: 8px; }
+
+</style>
+</head>
+<body>
+
+<!-- Bandeau supérieur -->
+<div class="top-banner">
+  <div class="container">
+    <span><strong>⚠ Carte communautaire non officielle</strong> — informations non garanties, à vérifier auprès des sources officielles (préfecture, mairie, pompiers).</span>
+  </div>
+</div>
+
+<!-- En-tête -->
+<header class="site-header">
+  <div class="container">
+    <div>
+      <h1>Incendie de <span>Biscarrosse</span></h1>
+      <p class="subtitle">Carte de suivi collaborative — zone touchée par le feu, bâtiments détruits et bâtiments apparaissant intacts, à partir des retours de la communauté.</p>
+    </div>
+    <div class="live-badge"><span class="live-dot"></span> Mise à jour continue — <span id="last-update-badge">chargement…</span></div>
+  </div>
+</header>
+
+<!-- Disclaimer principal -->
+<div class="disclaimer">
+  <div class="container">
+    <span class="icon">!</span>
+    <p>
+      Ce site est un projet <strong>collaboratif et non officiel</strong>, à but purement informatif. Les données affichées proviennent de retours communautaires (photos, vidéos, témoignages) et <strong>n'engagent en rien la responsabilité de ses auteurs quant à leur exactitude</strong>. En particulier, la couche « bâtiments intacts » repose uniquement sur <strong>l'aspect extérieur visible sur les photos et vidéos disponibles</strong> : elle ne constitue ni une expertise, ni une confirmation officielle de l'état réel ou de la sécurité du bâtiment. Pour toute décision (évacuation, retour au domicile, assurance…), référez-vous exclusivement aux autorités officielles (préfecture des Landes, mairie de Biscarrosse, SDIS 40, gendarmerie).
+    </p>
+  </div>
+</div>
+
+<!-- Carte -->
+<section class="map-section">
+  <div class="container">
+    <div class="map-wrap">
+      <div id="map"></div>
+
+      <div class="legend">
+        <h3>Légende</h3>
+        <div class="legend-row"><span class="swatch fire"></span> Zone touchée par l'incendie</div>
+        <div class="legend-row"><span class="swatch destroyed"></span> Bâtiment confirmé détruit</div>
+        <div class="legend-row"><span class="swatch intact"></span> Bâtiment apparaissant intact</div>
+      </div>
+
+      <div class="map-toolbar">
+        <label><input type="checkbox" id="toggle-fire" checked> Zone incendie</label>
+        <label><input type="checkbox" id="toggle-destroyed" checked> Bâtiments détruits</label>
+        <label><input type="checkbox" id="toggle-intact" checked> Bâtiments intacts</label>
+        <label>Fond de carte
+          <select id="basemap-select">
+            <option value="osm">Plan (OSM)</option>
+            <option value="sat">Satellite</option>
+          </select>
+        </label>
+      </div>
+    </div>
+
+    <div class="map-meta">
+      <span>Sources : contributions communautaires vérifiées à minima (photo/vidéo à l'appui).</span>
+      <span id="feature-count">Chargement des couches…</span>
+    </div>
+  </div>
+</section>
+
+<!-- Explication des couches -->
+<section>
+  <div class="container">
+    <p class="section-eyebrow">Comment lire la carte</p>
+    <h2 class="section-title">Trois couches, trois niveaux de certitude</h2>
+    <div class="info-grid">
+      <div class="info-card fire">
+        <h3>Zone incendie</h3>
+        <p>Périmètre approximatif de la zone couverte ou traversée par le feu, reconstitué à partir des observations disponibles. Les contours évoluent et ne représentent pas une limite officielle du front de feu.</p>
+      </div>
+      <div class="info-card destroyed">
+        <h3>Bâtiments détruits</h3>
+        <p>Bâtiments pour lesquels une photo ou vidéo montre une destruction manifeste (structure effondrée ou brûlée). Chaque point renvoie vers le média source utilisé pour la confirmation.</p>
+      </div>
+      <div class="info-card intact">
+        <h3>Bâtiments intacts</h3>
+        <p><strong>À lire avec prudence :</strong> basé uniquement sur l'aspect extérieur visible sur une photo ou vidéo. Un bâtiment classé « intact » peut néanmoins avoir subi des dommages non visibles de l'extérieur (structure, toiture, intérieur, réseaux).</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Formulaire de contact / contribution -->
+<section class="contact-section" id="contribuer">
+  <div class="container">
+    <p class="section-eyebrow">Vous avez une information ?</p>
+    <h2 class="section-title">Faire une remontée de terrain</h2>
+    <p class="lead">Si vous disposez d'une photo, d'une vidéo ou d'une observation directe sur une zone ou un bâtiment, merci de nous la transmettre. Toute contribution est relue avant intégration à la carte.</p>
+
+    <div class="contact-grid">
+      <div class="contact-steps">
+        <div class="contact-step">
+          <span class="num">01</span>
+          <p>Indiquez le plus précisément possible l'adresse, le lieu-dit ou les coordonnées de la zone concernée.</p>
+        </div>
+        <div class="contact-step">
+          <span class="num">02</span>
+          <p>Décrivez ce que vous avez observé (bâtiment détruit, intact, zone atteinte par le feu, etc.).</p>
+        </div>
+        <div class="contact-step">
+          <span class="num">03</span>
+          <p>Joignez si possible une photo ou une courte vidéo servant de preuve / source à l'information.</p>
+        </div>
+        <div class="contact-step">
+          <span class="num">04</span>
+          <p>Votre email ne sera utilisé que si nous avons besoin de vous recontacter pour préciser votre signalement.</p>
+        </div>
+      </div>
+
+      <form id="contact-form" action="https://formspree.io/f/VOTRE_ID_FORMSPREE" method="POST" enctype="multipart/form-data">
+        <div class="form-row">
+          <label for="f-name">Nom (ou pseudonyme)</label>
+          <input type="text" id="f-name" name="nom" required autocomplete="name">
+        </div>
+        <div class="form-row">
+          <label for="f-email">Adresse email</label>
+          <input type="email" id="f-email" name="email" required autocomplete="email">
+          <p class="form-hint">Utilisée uniquement pour vous recontacter si besoin de précisions.</p>
+        </div>
+        <div class="form-row">
+          <label for="f-desc">Description de la zone / de l'observation</label>
+          <textarea id="f-desc" name="description" required placeholder="Ex : adresse, lieu-dit, ce qui a été observé, quand…"></textarea>
+        </div>
+        <div class="form-row">
+          <label for="f-media">Photo ou vidéo (source de l'information)</label>
+          <input type="file" id="f-media" name="media" accept="image/*,video/*">
+          <p class="form-hint">Format image ou vidéo. Fichier volumineux ? Voir la note ci-dessous.</p>
+        </div>
+        <div class="form-row consent">
+          <input type="checkbox" id="f-consent" name="consentement" required>
+          <label for="f-consent">J'accepte que ces informations soient examinées et, si pertinentes, publiées sur la carte collaborative (sans mon email ni mon nom, sauf mention contraire).</label>
+        </div>
+        <button type="submit" class="submit-btn">Envoyer le signalement</button>
+        <p id="form-status" role="status" aria-live="polite"></p>
+        <p class="form-hint" style="margin-top:10px;">
+          ⚠ Ce formulaire est actuellement branché sur un identifiant Formspree d'exemple (<code>VOTRE_ID_FORMSPREE</code>). Voir le fichier <code>README.md</code> pour le configurer avant mise en ligne.
+        </p>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- Pied de page -->
+<footer class="site-footer">
+  <div class="container">
+    <p><strong>Site collaboratif et non officiel.</strong> Les informations présentées sont fournies à titre indicatif par des contributeurs bénévoles et peuvent être incomplètes, obsolètes ou erronées. Elles ne sauraient engager la responsabilité des auteurs de ce site quant à leur exactitude.</p>
+    <p>En cas de danger ou d'urgence : appelez le <strong>18</strong> ou le <strong>112</strong>. Pour des informations officielles, consultez la préfecture des Landes, la mairie de Biscarrosse et les comptes officiels du SDIS 40.</p>
+    <p>Dernière mise à jour des données : <span id="last-update-footer">—</span></p>
+  </div>
+</footer>
+
+<!-- Modale média (agrandissement photo/vidéo) -->
+<div class="media-modal" id="media-modal">
+  <button class="close-btn" id="media-modal-close" aria-label="Fermer">✕</button>
+  <div class="media-modal-content" id="media-modal-content"></div>
+</div>
+
+<!-- Leaflet -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+/* =========================================================
+   Biscarrosse — Suivi collaboratif de l'incendie
+   Logique carte + formulaire
+   ========================================================= */
+
+(function () {
+  "use strict";
+
+  // Centre approximatif de Biscarrosse (Landes, France)
+  const CENTER = [44.4675, -1.2508];
+  const DEFAULT_ZOOM = 13;
+
+  const DATA_URLS = {
+    fire: "data/incendie.geojson",
+    destroyed: "data/batiments_detruits.geojson",
+    intact: "data/batiments_intacts.geojson",
+  };
+
+  // ---------------------------------------------------------
+  // Initialisation de la carte
+  // ---------------------------------------------------------
+  const map = L.map("map", { zoomControl: true }).setView(CENTER, DEFAULT_ZOOM);
+
+  const osmLayer = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom: 19,
+    attribution: "&copy; contributeurs OpenStreetMap",
+  }).addTo(map);
+
+  const satLayer = L.tileLayer(
+    "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+    {
+      maxZoom: 19,
+      attribution: "Tuiles &copy; Esri — World Imagery",
+    }
+  );
+
+  document.getElementById("basemap-select").addEventListener("change", (e) => {
+    if (e.target.value === "sat") {
+      map.removeLayer(osmLayer);
+      satLayer.addTo(map);
+    } else {
+      map.removeLayer(satLayer);
+      osmLayer.addTo(map);
+    }
+  });
+
+  // ---------------------------------------------------------
+  // Helpers d'affichage
+  // ---------------------------------------------------------
+  function escapeHtml(str) {
+    if (str === undefined || str === null) return "";
+    return String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function buildMediaHtml(props) {
+    if (!props.media_url) return "";
+    const type = (props.media_type || "").toLowerCase();
+    if (type === "video") {
+      return `<div class="popup-media">
+        <video src="${escapeHtml(props.media_url)}" controls muted
+          onclick="window.__openMediaModal && window.__openMediaModal('${escapeHtml(props.media_url)}','video')"></video>
+      </div>`;
+    }
+    return `<div class="popup-media">
+      <img src="${escapeHtml(props.media_url)}" alt="Photo source"
+        onclick="window.__openMediaModal && window.__openMediaModal('${escapeHtml(props.media_url)}','image')">
+    </div>`;
+  }
+
+  function buildPopup(props, kind) {
+    const title = escapeHtml(props.adresse || props.nom || "Zone signalée");
+    const tagLabel = kind === "destroyed" ? "Détruit" : kind === "intact" ? "Apparaît intact" : "Zone incendie";
+    const tagClass = kind === "destroyed" ? "destroyed" : kind === "intact" ? "intact" : "";
+    let html = `<div class="popup-card">`;
+    if (tagClass) html += `<span class="popup-tag ${tagClass}">${tagLabel}</span>`;
+    html += `<h4>${title}</h4>`;
+    if (props.description) html += `<p class="popup-desc">${escapeHtml(props.description)}</p>`;
+    html += buildMediaHtml(props);
+    if (kind === "intact") {
+      html += `<p class="popup-note">⚠ Basé uniquement sur l'aspect extérieur visible en photo/vidéo. Aucune expertise ni confirmation officielle.</p>`;
+    }
+    if (props.source) html += `<p class="popup-source">Source : ${escapeHtml(props.source)}</p>`;
+    if (props.date_confirmation) html += `<p class="popup-source">Constaté le ${escapeHtml(props.date_confirmation)}</p>`;
+    if (props.exemple) html += `<p class="popup-note">🧪 Donnée d'exemple — à remplacer par une observation réelle.</p>`;
+    html += `</div>`;
+    return html;
+  }
+
+  // ---------------------------------------------------------
+  // Chargement des couches GeoJSON
+  // ---------------------------------------------------------
+  let fireLayer, destroyedLayer, intactLayer;
+  let totalFeatures = 0;
+  let latestDate = null;
+
+  function trackDate(props) {
+    const d = props.date_confirmation || props.date_maj;
+    if (d && (!latestDate || d > latestDate)) latestDate = d;
+  }
+
+  function loadLayer(url, kind) {
+    return fetch(url)
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status} sur ${url}`);
+        return r.json();
+      })
+      .then((geojson) => {
+        (geojson.features || []).forEach((f) => trackDate(f.properties || {}));
+        totalFeatures += (geojson.features || []).length;
+
+        if (kind === "fire") {
+          return L.geoJSON(geojson, {
+            style: () => ({
+              color: "#b7440a",
+              weight: 2,
+              dashArray: "6 4",
+              fillColor: "#e8580c",
+              fillOpacity: 0.28,
+            }),
+            onEachFeature: (feature, layer) => {
+              layer.bindPopup(buildPopup(feature.properties || {}, "fire"));
+            },
+          });
+        }
+
+        const color = kind === "destroyed" ? "#a32424" : "#2f7a4d";
+        return L.geoJSON(geojson, {
+          pointToLayer: (feature, latlng) =>
+            L.circleMarker(latlng, {
+              radius: 8,
+              color: "#ffffff",
+              weight: 1.5,
+              fillColor: color,
+              fillOpacity: 0.9,
+            }),
+          style: () => ({ color, weight: 2, fillColor: color, fillOpacity: 0.35 }),
+          onEachFeature: (feature, layer) => {
+            layer.bindPopup(buildPopup(feature.properties || {}, kind));
+          },
+        });
+      })
+      .catch((err) => {
+        console.warn(`Impossible de charger ${url} :`, err.message);
+        return L.geoJSON({ type: "FeatureCollection", features: [] });
+      });
+  }
+
+  Promise.all([
+    loadLayer(DATA_URLS.fire, "fire"),
+    loadLayer(DATA_URLS.destroyed, "destroyed"),
+    loadLayer(DATA_URLS.intact, "intact"),
+  ]).then(([fire, destroyed, intact]) => {
+    fireLayer = fire.addTo(map);
+    destroyedLayer = destroyed.addTo(map);
+    intactLayer = intact.addTo(map);
+
+    // Cadrer la vue sur l'ensemble des couches si elles contiennent des données
+    const group = L.featureGroup([fireLayer, destroyedLayer, intactLayer].filter((l) => l.getLayers().length));
+    if (group.getLayers().length) {
+      map.fitBounds(group.getBounds().pad(0.15));
+    }
+
+    document.getElementById("feature-count").textContent =
+      totalFeatures > 0
+        ? `${totalFeatures} élément(s) chargé(s) sur la carte.`
+        : "Aucune donnée chargée pour le moment.";
+
+    const dateLabel = latestDate || "non renseignée";
+    document.getElementById("last-update-badge").textContent = `MAJ : ${dateLabel}`;
+    document.getElementById("last-update-footer").textContent = dateLabel;
+  });
+
+  document.getElementById("toggle-fire").addEventListener("change", (e) => {
+    if (!fireLayer) return;
+    e.target.checked ? map.addLayer(fireLayer) : map.removeLayer(fireLayer);
+  });
+  document.getElementById("toggle-destroyed").addEventListener("change", (e) => {
+    if (!destroyedLayer) return;
+    e.target.checked ? map.addLayer(destroyedLayer) : map.removeLayer(destroyedLayer);
+  });
+  document.getElementById("toggle-intact").addEventListener("change", (e) => {
+    if (!intactLayer) return;
+    e.target.checked ? map.addLayer(intactLayer) : map.removeLayer(intactLayer);
+  });
+
+  // ---------------------------------------------------------
+  // Modale média (agrandissement des photos/vidéos)
+  // ---------------------------------------------------------
+  const modal = document.getElementById("media-modal");
+  const modalContent = document.getElementById("media-modal-content");
+
+  window.__openMediaModal = function (url, type) {
+    modalContent.innerHTML =
+      type === "video"
+        ? `<video src="${escapeHtml(url)}" controls autoplay class="media-modal-content"></video>`
+        : `<img src="${escapeHtml(url)}" alt="Média agrandi" class="media-modal-content">`;
+    modal.classList.add("open");
+  };
+
+  document.getElementById("media-modal-close").addEventListener("click", () => {
+    modal.classList.remove("open");
+    modalContent.innerHTML = "";
+  });
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) {
+      modal.classList.remove("open");
+      modalContent.innerHTML = "";
+    }
+  });
+
+  // ---------------------------------------------------------
+  // Formulaire de contact / contribution
+  // ---------------------------------------------------------
+  const form = document.getElementById("contact-form");
+  const status = document.getElementById("form-status");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    status.textContent = "Envoi en cours…";
+    status.className = "";
+
+    if (form.action.includes("VOTRE_ID_FORMSPREE")) {
+      status.textContent =
+        "⚠ Le formulaire n'est pas encore configuré (voir README.md) : le message n'a pas été envoyé.";
+      status.className = "err";
+      return;
+    }
+
+    try {
+      const response = await fetch(form.action, {
+        method: "POST",
+        body: new FormData(form),
+        headers: { Accept: "application/json" },
+      });
+      if (response.ok) {
+        status.textContent = "Merci, votre signalement a bien été envoyé.";
+        status.className = "ok";
+        form.reset();
+      } else {
+        status.textContent = "Une erreur est survenue lors de l'envoi. Merci de réessayer.";
+        status.className = "err";
+      }
+    } catch (err) {
+      status.textContent = "Impossible d'envoyer le formulaire (connexion). Merci de réessayer.";
+      status.className = "err";
+    }
+  });
+})();
+
+</script>
+</body>
+</html>

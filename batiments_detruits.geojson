@@ -1,0 +1,25 @@
+{
+  "type": "FeatureCollection",
+  "properties": {
+    "_note": "FICHIER D'EXEMPLE — remplacez ce contenu par Batiment_detruit.geojson réel. Chaque feature peut porter les champs: adresse, description, source, media_url, media_type (image|video), date_confirmation. Ne publiez que des informations vérifiées."
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "adresse": "Exemple : Lieu-dit du Gaillon (FICTIF)",
+        "description": "Bâtiment d'exemple présenté comme détruit d'après une photo aérienne fictive. À remplacer par une donnée réelle et vérifiée.",
+        "source": "Exemple de démonstration",
+        "media_url": "",
+        "media_type": "image",
+        "date_confirmation": "2026-07-24",
+        "exemple": true
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-1.2550, 44.4650]
+      }
+    },
+{ "type": "Feature", "properties": { "adresse": "414 Rue de Cantegrit", "description": null, "source": "Biscarrosse ma ville", "media_url": "https:\/\/www.facebook.com\/groups\/BiscarrosseMaVille\/permalink\/27830179963279428\/", "media_type": null, "date_confirmation": null, "exemple": false }, "geometry": { "type": "Point", "coordinates": [ -1.14983870994694, 44.386433648677468 ] } }
+]
+}

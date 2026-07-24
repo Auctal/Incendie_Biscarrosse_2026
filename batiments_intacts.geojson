@@ -1,0 +1,25 @@
+{
+  "type": "FeatureCollection",
+  "properties": {
+    "_note": "FICHIER D'EXEMPLE — remplacez ce contenu par Batiment_intact.geojson réel. IMPORTANT : ces informations reposent uniquement sur l'aspect extérieur visible sur photos/vidéos disponibles, pas sur une inspection officielle. Champs suggérés: adresse, description, source, media_url, media_type (image|video), date_confirmation."
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "adresse": "Exemple : Route des Lacs (FICTIF)",
+        "description": "Bâtiment d'exemple apparaissant intact sur une vidéo fictive. À remplacer par une donnée réelle et vérifiée.",
+        "source": "Exemple de démonstration",
+        "media_url": "",
+        "media_type": "video",
+        "date_confirmation": "2026-07-24",
+        "exemple": true
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-1.2500, 44.4600]
+      }
+    },
+{ "type": "Feature", "properties": { "adresse": "Ecurie en Hill", "description": null, "source": "Biscarrosse ma ville", "media_url": "https:\/\/www.facebook.com\/100005466912933\/videos\/3489146461263212\/", "media_type": null, "date_confirmation": null, "exemple": false }, "geometry": { "type": "Point", "coordinates": [ -1.118901253247432, 44.398833914003795 ] } }
+]
+}
