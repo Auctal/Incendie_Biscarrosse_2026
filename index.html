@@ -574,7 +574,7 @@ footer.site-footer .container { display: flex; flex-direction: column; gap: 8px;
         </div>
       </div>
 
-      <form id="contact-form" action="https://formspree.io/f/VOTRE_ID_FORMSPREE" method="POST" enctype="multipart/form-data">
+      <form id="contact-form" data-contact-email="incendie.biscarrosse@proton.me">
         <div class="form-row">
           <label for="f-name">Nom (ou pseudonyme)</label>
           <input type="text" id="f-name" name="nom" required autocomplete="name">
@@ -591,7 +591,7 @@ footer.site-footer .container { display: flex; flex-direction: column; gap: 8px;
         <div class="form-row">
           <label for="f-media">Photo ou vidéo (source de l'information)</label>
           <input type="file" id="f-media" name="media" accept="image/*,video/*">
-          <p class="form-hint">Format image ou vidéo. Fichier volumineux ? Voir la note ci-dessous.</p>
+          <p class="form-hint">Votre messagerie va s'ouvrir avec le message pré-rempli : pensez à joindre ce fichier manuellement avant l'envoi (les pièces jointes ne sont pas transmises automatiquement).</p>
         </div>
         <div class="form-row consent">
           <input type="checkbox" id="f-consent" name="consentement" required>
@@ -600,7 +600,7 @@ footer.site-footer .container { display: flex; flex-direction: column; gap: 8px;
         <button type="submit" class="submit-btn">Envoyer le signalement</button>
         <p id="form-status" role="status" aria-live="polite"></p>
         <p class="form-hint" style="margin-top:10px;">
-          ⚠ Ce formulaire est actuellement branché sur un identifiant Formspree d'exemple (<code>VOTRE_ID_FORMSPREE</code>). Voir le fichier <code>README.md</code> pour le configurer avant mise en ligne.
+          ✉ En cliquant sur « Envoyer le signalement », votre application de messagerie s'ouvre avec un email pré-rempli à destination de <strong>incendie.biscarrosse@proton.me</strong>. Il vous suffit d'y joindre votre photo/vidéo puis de cliquer sur envoyer.
         </p>
       </form>
     </div>
@@ -807,37 +807,41 @@ footer.site-footer .container { display: flex; flex-direction: column; gap: 8px;
   // ---------------------------------------------------------
   const form = document.getElementById("contact-form");
   const status = document.getElementById("form-status");
+  const CONTACT_EMAIL = form.dataset.contactEmail || "incendie.biscarrosse@proton.me";
 
-  form.addEventListener("submit", async (e) => {
+  form.addEventListener("submit", (e) => {
     e.preventDefault();
-    status.textContent = "Envoi en cours…";
-    status.className = "";
 
-    if (form.action.includes("VOTRE_ID_FORMSPREE")) {
-      status.textContent =
-        "⚠ Le formulaire n'est pas encore configuré (voir README.md) : le message n'a pas été envoyé.";
-      status.className = "err";
-      return;
-    }
+    const nom = document.getElementById("f-name").value.trim();
+    const email = document.getElementById("f-email").value.trim();
+    const description = document.getElementById("f-desc").value.trim();
+    const hasMedia = document.getElementById("f-media").files.length > 0;
 
-    try {
-      const response = await fetch(form.action, {
-        method: "POST",
-        body: new FormData(form),
-        headers: { Accept: "application/json" },
-      });
-      if (response.ok) {
-        status.textContent = "Merci, votre signalement a bien été envoyé.";
-        status.className = "ok";
-        form.reset();
-      } else {
-        status.textContent = "Une erreur est survenue lors de l'envoi. Merci de réessayer.";
-        status.className = "err";
-      }
-    } catch (err) {
-      status.textContent = "Impossible d'envoyer le formulaire (connexion). Merci de réessayer.";
-      status.className = "err";
-    }
+    const subject = `Signalement carte incendie Biscarrosse — ${nom}`;
+    const bodyLines = [
+      `Nom : ${nom}`,
+      `Email de contact : ${email}`,
+      "",
+      "Description de la zone / de l'observation :",
+      description,
+      "",
+      hasMedia
+        ? "⚠ Un fichier a été sélectionné dans le formulaire du site. Pensez à le joindre manuellement à cet email avant de l'envoyer (les pièces jointes ne sont pas transférées automatiquement)."
+        : "Aucun fichier n'a été joint depuis le formulaire.",
+    ];
+    const body = bodyLines.join("\n");
+
+    const mailtoUrl =
+      `mailto:${encodeURIComponent(CONTACT_EMAIL)}` +
+      `?subject=${encodeURIComponent(subject)}` +
+      `&body=${encodeURIComponent(body)}`;
+
+    window.location.href = mailtoUrl;
+
+    status.textContent = hasMedia
+      ? `Votre messagerie va s'ouvrir avec le message pré-rempli à destination de ${CONTACT_EMAIL}. N'oubliez pas d'y joindre votre photo/vidéo puis de cliquer sur envoyer.`
+      : `Votre messagerie va s'ouvrir avec le message pré-rempli à destination de ${CONTACT_EMAIL}. Il ne vous reste plus qu'à cliquer sur envoyer.`;
+    status.className = "ok";
   });
 })();
 
