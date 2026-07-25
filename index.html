@@ -574,7 +574,10 @@ footer.site-footer .container { display: flex; flex-direction: column; gap: 8px;
         </div>
       </div>
 
-      <form id="contact-form" data-contact-email="incendie.biscarrosse@proton.me">
+      <form id="contact-form"
+            action="https://formsubmit.co/incendie.biscarrosse@proton.me"
+            method="POST" enctype="multipart/form-data"
+            data-contact-email="incendie.biscarrosse@proton.me">
         <div class="form-row">
           <label for="f-name">Nom (ou pseudonyme)</label>
           <input type="text" id="f-name" name="nom" required autocomplete="name">
@@ -591,16 +594,23 @@ footer.site-footer .container { display: flex; flex-direction: column; gap: 8px;
         <div class="form-row">
           <label for="f-media">Photo ou vidéo (source de l'information)</label>
           <input type="file" id="f-media" name="media" accept="image/*,video/*">
-          <p class="form-hint">Votre messagerie va s'ouvrir avec le message pré-rempli : pensez à joindre ce fichier manuellement avant l'envoi (les pièces jointes ne sont pas transmises automatiquement).</p>
+          <p class="form-hint">Formats image ou vidéo, 10 Mo maximum. Envoyé directement en pièce jointe.</p>
         </div>
         <div class="form-row consent">
           <input type="checkbox" id="f-consent" name="consentement" required>
           <label for="f-consent">J'accepte que ces informations soient examinées et, si pertinentes, publiées sur la carte collaborative (sans mon email ni mon nom, sauf mention contraire).</label>
         </div>
+
+        <!-- Configuration FormSubmit.co (aucun compte requis) -->
+        <input type="hidden" name="_subject" value="Signalement carte incendie Biscarrosse">
+        <input type="hidden" name="_template" value="table">
+        <input type="hidden" name="_captcha" value="false">
+        <input type="text" name="_honey" style="display:none" tabindex="-1" autocomplete="off">
+
         <button type="submit" class="submit-btn">Envoyer le signalement</button>
         <p id="form-status" role="status" aria-live="polite"></p>
         <p class="form-hint" style="margin-top:10px;">
-          ✉ En cliquant sur « Envoyer le signalement », votre application de messagerie s'ouvre avec un email pré-rempli à destination de <strong>incendie.biscarrosse@proton.me</strong>. Il vous suffit d'y joindre votre photo/vidéo puis de cliquer sur envoyer.
+          ✉ Ce formulaire envoie directement un email (avec la pièce jointe) à <strong>incendie.biscarrosse@proton.me</strong>, sans ouvrir votre messagerie. Voir le <code>README.md</code> pour l'étape unique d'activation à faire côté destinataire.
         </p>
       </form>
     </div>
@@ -809,39 +819,51 @@ footer.site-footer .container { display: flex; flex-direction: column; gap: 8px;
   const status = document.getElementById("form-status");
   const CONTACT_EMAIL = form.dataset.contactEmail || "incendie.biscarrosse@proton.me";
 
-  form.addEventListener("submit", (e) => {
-    e.preventDefault();
-
+  function buildMailtoFallback() {
     const nom = document.getElementById("f-name").value.trim();
     const email = document.getElementById("f-email").value.trim();
     const description = document.getElementById("f-desc").value.trim();
-    const hasMedia = document.getElementById("f-media").files.length > 0;
-
     const subject = `Signalement carte incendie Biscarrosse — ${nom}`;
-    const bodyLines = [
+    const body = [
       `Nom : ${nom}`,
       `Email de contact : ${email}`,
       "",
       "Description de la zone / de l'observation :",
       description,
       "",
-      hasMedia
-        ? "⚠ Un fichier a été sélectionné dans le formulaire du site. Pensez à le joindre manuellement à cet email avant de l'envoyer (les pièces jointes ne sont pas transférées automatiquement)."
-        : "Aucun fichier n'a été joint depuis le formulaire.",
-    ];
-    const body = bodyLines.join("\n");
-
-    const mailtoUrl =
+      "⚠ Pensez à joindre votre photo/vidéo manuellement (le lien mailto ne transfère pas les pièces jointes).",
+    ].join("\n");
+    return (
       `mailto:${encodeURIComponent(CONTACT_EMAIL)}` +
       `?subject=${encodeURIComponent(subject)}` +
-      `&body=${encodeURIComponent(body)}`;
+      `&body=${encodeURIComponent(body)}`
+    );
+  }
 
-    window.location.href = mailtoUrl;
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    status.textContent = "Envoi en cours…";
+    status.className = "";
 
-    status.textContent = hasMedia
-      ? `Votre messagerie va s'ouvrir avec le message pré-rempli à destination de ${CONTACT_EMAIL}. N'oubliez pas d'y joindre votre photo/vidéo puis de cliquer sur envoyer.`
-      : `Votre messagerie va s'ouvrir avec le message pré-rempli à destination de ${CONTACT_EMAIL}. Il ne vous reste plus qu'à cliquer sur envoyer.`;
-    status.className = "ok";
+    const ajaxUrl = form.action.replace("formsubmit.co/", "formsubmit.co/ajax/");
+
+    try {
+      const response = await fetch(ajaxUrl, {
+        method: "POST",
+        body: new FormData(form),
+        headers: { Accept: "application/json" },
+      });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+      status.textContent = `Merci, votre signalement a bien été envoyé à ${CONTACT_EMAIL}.`;
+      status.className = "ok";
+      form.reset();
+    } catch (err) {
+      const mailtoUrl = buildMailtoFallback();
+      status.innerHTML =
+        `L'envoi automatique a échoué. <a href="${mailtoUrl}">Cliquez ici pour envoyer votre signalement par email</a> à la place (pensez à joindre votre photo/vidéo manuellement).`;
+      status.className = "err";
+    }
   });
 })();
 
