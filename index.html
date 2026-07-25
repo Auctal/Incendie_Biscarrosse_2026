@@ -282,6 +282,24 @@ section.map-section {
 .popup-tag.destroyed { background: #f6dede; color: var(--danger); }
 .popup-tag.intact { background: #dfeee3; color: var(--safe); }
 .popup-desc { font-size: 0.86rem; margin: 6px 0; color: var(--ink-soft); }
+.popup-date {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  color: var(--steel-dark);
+  background: #e9eef2;
+  padding: 3px 9px;
+  border-radius: 100px;
+  margin: 2px 0 8px;
+}
+.popup-date strong { font-weight: 600; }
+.popup-date-missing {
+  color: var(--ink-soft);
+  background: #eeece3;
+  font-style: italic;
+}
 .popup-link {
   display: inline-flex;
   align-items: center;
@@ -500,7 +518,7 @@ footer.site-footer .container { display: flex; flex-direction: column; gap: 8px;
 
       <div class="legend">
         <h3>Légende</h3>
-        <div class="legend-row"><span class="swatch fire"></span> Zone touchée par l'incendie</div>
+        <div class="legend-row"><span class="swatch fire"></span> Zone touchée par l'incendie (observation Copernicus)</div>
         <div class="legend-row"><span class="swatch destroyed"></span> Bâtiment confirmé détruit</div>
         <div class="legend-row"><span class="swatch intact"></span> Bâtiment apparaissant intact</div>
       </div>
@@ -533,7 +551,7 @@ footer.site-footer .container { display: flex; flex-direction: column; gap: 8px;
     <div class="info-grid">
       <div class="info-card fire">
         <h3>Zone incendie</h3>
-        <p>Périmètre approximatif de la zone couverte ou traversée par le feu, reconstitué à partir des observations disponibles. Les contours évoluent et ne représentent pas une limite officielle du front de feu.</p>
+        <p>Périmètre approximatif de la zone couverte ou traversée par le feu, reconstitué à partir des observations disponibles (<a href="https://forest-fire.emergency.copernicus.eu/apps/effis.csv/?c=-125837.73,5527760.06&z=12.607740062517173&t=sentinel2&tiles=nrt.ba.today&forecastActive=false&sourceId=ecmwf&indexId=fdf.ecmwf007.fwi&forecastDate=2026-07-25&rdaFrom=2026-07-24&rdaTo=2026-07-25&rdaDateRange=today&layerInfoPoint&fdcPoint&fdcDate" target="_blank" rel="noopener noreferrer">observation Copernicus EFFIS ↗</a>). Les contours évoluent et ne représentent pas une limite officielle du front de feu.</p>
       </div>
       <div class="info-card destroyed">
         <h3>Bâtiments détruits</h3>
@@ -700,16 +718,23 @@ footer.site-footer .container { display: flex; flex-direction: column; gap: 8px;
     const title = escapeHtml(props.adresse || props.nom || "Zone signalée");
     const tagLabel = kind === "destroyed" ? "Détruit" : kind === "intact" ? "Apparaît intact" : "Zone incendie";
     const tagClass = kind === "destroyed" ? "destroyed" : kind === "intact" ? "intact" : "";
+    const infoDate = props.date_confirmation || props.date_maj;
+    const dateLabel = kind === "fire" ? "Zone mise à jour le" : "Information constatée le";
+
     let html = `<div class="popup-card">`;
     if (tagClass) html += `<span class="popup-tag ${tagClass}">${tagLabel}</span>`;
     html += `<h4>${title}</h4>`;
+    if (infoDate) {
+      html += `<p class="popup-date">📅 ${dateLabel} <strong>${escapeHtml(infoDate)}</strong></p>`;
+    } else {
+      html += `<p class="popup-date popup-date-missing">📅 Date de l'information non renseignée</p>`;
+    }
     if (props.description) html += `<p class="popup-desc">${escapeHtml(props.description)}</p>`;
     html += buildMediaHtml(props);
     if (kind === "intact") {
       html += `<p class="popup-note">⚠ Basé uniquement sur l'aspect extérieur visible en photo/vidéo. Aucune expertise ni confirmation officielle.</p>`;
     }
     if (props.source) html += `<p class="popup-source">Source : ${escapeHtml(props.source)}</p>`;
-    if (props.date_confirmation) html += `<p class="popup-source">Constaté le ${escapeHtml(props.date_confirmation)}</p>`;
     if (props.exemple) html += `<p class="popup-note">🧪 Donnée d'exemple — à remplacer par une observation réelle.</p>`;
     html += `</div>`;
     return html;
