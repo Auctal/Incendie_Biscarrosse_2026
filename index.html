@@ -406,7 +406,7 @@ form#contact-form {
 .form-row input[type="text"],
 .form-row input[type="email"],
 .form-row textarea,
-.form-row input[type="file"] {
+.form-row input[type="url"] {
   width: 100%;
   font-family: var(--font-body);
   font-size: 0.92rem;
@@ -576,7 +576,7 @@ footer.site-footer .container { display: flex; flex-direction: column; gap: 8px;
 
       <form id="contact-form"
             action="https://formsubmit.co/incendie.biscarrosse@proton.me"
-            method="POST" enctype="multipart/form-data"
+            method="POST"
             data-contact-email="incendie.biscarrosse@proton.me">
         <div class="form-row">
           <label for="f-name">Nom (ou pseudonyme)</label>
@@ -592,9 +592,9 @@ footer.site-footer .container { display: flex; flex-direction: column; gap: 8px;
           <textarea id="f-desc" name="description" required placeholder="Ex : adresse, lieu-dit, ce qui a été observé, quand…"></textarea>
         </div>
         <div class="form-row">
-          <label for="f-media">Photo ou vidéo (source de l'information)</label>
-          <input type="file" id="f-media" name="media" accept="image/*,video/*">
-          <p class="form-hint">Formats image ou vidéo, 10 Mo maximum. Envoyé directement en pièce jointe.</p>
+          <label for="f-media">Lien vers une publication, photo ou vidéo (source de l'information)</label>
+          <input type="url" id="f-media" name="lien_source" placeholder="https://…">
+          <p class="form-hint">Collez le lien vers la publication, la photo ou la vidéo servant de source (réseau social, Google Drive, Google Photos, etc.).</p>
         </div>
         <div class="form-row consent">
           <input type="checkbox" id="f-consent" name="consentement" required>
@@ -610,7 +610,7 @@ footer.site-footer .container { display: flex; flex-direction: column; gap: 8px;
         <button type="submit" class="submit-btn">Envoyer le signalement</button>
         <p id="form-status" role="status" aria-live="polite"></p>
         <p class="form-hint" style="margin-top:10px;">
-          ✉ Ce formulaire envoie directement un email (avec la pièce jointe) à <strong>incendie.biscarrosse@proton.me</strong>, sans ouvrir votre messagerie. Voir le <code>README.md</code> pour l'étape unique d'activation à faire côté destinataire.
+          ✉ Ce formulaire envoie directement un email (avec la pièce jointe) à <strong>incendie.biscarrosse@proton.me</strong>, sans ouvrir votre messagerie.
         </p>
       </form>
     </div>
@@ -823,6 +823,7 @@ footer.site-footer .container { display: flex; flex-direction: column; gap: 8px;
     const nom = document.getElementById("f-name").value.trim();
     const email = document.getElementById("f-email").value.trim();
     const description = document.getElementById("f-desc").value.trim();
+    const lienSource = document.getElementById("f-media").value.trim();
     const subject = `Signalement carte incendie Biscarrosse — ${nom}`;
     const body = [
       `Nom : ${nom}`,
@@ -831,7 +832,7 @@ footer.site-footer .container { display: flex; flex-direction: column; gap: 8px;
       "Description de la zone / de l'observation :",
       description,
       "",
-      "⚠ Pensez à joindre votre photo/vidéo manuellement (le lien mailto ne transfère pas les pièces jointes).",
+      `Lien source (photo/vidéo/publication) : ${lienSource || "non renseigné"}`,
     ].join("\n");
     return (
       `mailto:${encodeURIComponent(CONTACT_EMAIL)}` +
@@ -861,7 +862,7 @@ footer.site-footer .container { display: flex; flex-direction: column; gap: 8px;
     } catch (err) {
       const mailtoUrl = buildMailtoFallback();
       status.innerHTML =
-        `L'envoi automatique a échoué. <a href="${mailtoUrl}">Cliquez ici pour envoyer votre signalement par email</a> à la place (pensez à joindre votre photo/vidéo manuellement).`;
+        `L'envoi automatique a échoué. <a href="${mailtoUrl}">Cliquez ici pour envoyer votre signalement par email</a> à la place.`;
       status.className = "err";
     }
   });
