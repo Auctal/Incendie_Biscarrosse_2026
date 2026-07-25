@@ -1,25 +1,18 @@
 {
-  "type": "FeatureCollection",
-  "properties": {
-    "_note": "FICHIER D'EXEMPLE — remplacez ce contenu par Batiment_intact.geojson réel. IMPORTANT : ces informations reposent uniquement sur l'aspect extérieur visible sur photos/vidéos disponibles, pas sur une inspection officielle. Champs suggérés: adresse, description, source, media_url, media_type (image|video), date_confirmation."
-  },
-  "features": [
-    {
-      "type": "Feature",
-      "properties": {
-        "adresse": "Exemple : Route des Lacs (FICTIF)",
-        "description": "Bâtiment d'exemple apparaissant intact sur une vidéo fictive. À remplacer par une donnée réelle et vérifiée.",
-        "source": "Exemple de démonstration",
-        "media_url": "",
-        "media_type": "video",
-        "date_confirmation": "2026-07-24",
-        "exemple": true
-      },
-      "geometry": {
-        "type": "Point",
-        "coordinates": [-1.2500, 44.4600]
-      }
-    },
-{ "type": "Feature", "properties": { "adresse": "Ecurie en Hill", "description": null, "source": "Biscarrosse ma ville", "media_url": "https:\/\/www.facebook.com\/100005466912933\/videos\/3489146461263212\/", "media_type": null, "date_confirmation": null, "exemple": false }, "geometry": { "type": "Point", "coordinates": [ -1.118901253247432, 44.398833914003795 ] } }
+"type": "FeatureCollection",
+"properties": { "_note": "FICHIER D'EXEMPLE — remplacez ce contenu par Batiment_intact.geojson réel. IMPORTANT : ces informations reposent uniquement sur l'aspect extérieur visible sur photos\/vidéos disponibles, pas sur une inspection officielle. Champs suggérés: adresse, description, source, media_url, media_type (image|video), date_confirmation." },
+"name": "batiments_intacts",
+"features": [
+{ "type": "Feature", "properties": { "adresse": "Ecurie en Hill", "description": null, "source": "Biscarrosse ma ville", "media_url": "https://www.facebook.com/100005466912933/videos/3489146461263212/", "media_type": null, "date_confirmation": null, "exemple": false }, "geometry": { "type": "Point", "coordinates": [ -1.118901253247432, 44.398833914003795 ] } },
+{ "type": "Feature", "properties": { "adresse": "54 Chemin de Martic", "description": null, "source": null, "media_url": "https:\/\/auctal.github.io\/Incendie_Biscarrosse_2026\/Media\/WhatsApp%20Video%202026-07-24%20at%2010.04.59.mp4", "media_type": null, "date_confirmation": "2026-07-26", "exemple": false }, "geometry": { "type": "Point", "coordinates": [ -1.146693909825342, 44.406603901256936 ] } },
+{ "type": "Feature", "properties": { "adresse": "Chemin de martic", "description": null, "source": null, "media_url": "https:\/\/auctal.github.io\/Incendie_Biscarrosse_2026\/Media\/WhatsApp%20Video%202026-07-24%20at%2010.04.59.mp4", "media_type": null, "date_confirmation": null, "exemple": false }, "geometry": { "type": "Point", "coordinates": [ -1.146805386314155, 44.407039761518114 ] } },
+{ "type": "Feature", "properties": { "adresse": "Chemin de Martic", "description": null, "source": null, "media_url": "https:\/\/auctal.github.io\/Incendie_Biscarrosse_2026\/Media\/WhatsApp%20Video%202026-07-24%20at%2010.04.59.mp4", "media_type": null, "date_confirmation": null, "exemple": false }, "geometry": { "type": "Point", "coordinates": [ -1.146764088528427, 44.407275748865132 ] } },
+{ "type": "Feature", "properties": { "adresse": "Impasse des Arbages", "description": null, "source": null, "media_url": "https:\/\/www.facebook.com\/michael.nourricier\/videos\/1938511576738031\/?idorvanity=3218509358206497", "media_type": null, "date_confirmation": "2026-07-25", "exemple": false }, "geometry": { "type": "Point", "coordinates": [ -1.151786194257135, 44.373977934201044 ] } },
+{ "type": "Feature", "properties": { "adresse": "Impasse des Arbages", "description": null, "source": null, "media_url": "https:\/\/www.facebook.com\/michael.nourricier\/videos\/1938511576738031\/?idorvanity=3218509358206497", "media_type": null, "date_confirmation": null, "exemple": false }, "geometry": { "type": "Point", "coordinates": [ -1.151320119246776, 44.373796518928025 ] } },
+{ "type": "Feature", "properties": { "adresse": "Villa Vermeil", "description": null, "source": null, "media_url": "https:\/\/www.facebook.com\/groups\/BiscarrosseMaVille\/permalink\/27828765683420856\/", "media_type": null, "date_confirmation": null, "exemple": false }, "geometry": { "type": "Point", "coordinates": [ -1.155442523214982, 44.39354865987336 ] } },
+{ "type": "Feature", "properties": { "adresse": "Allée des biches", "description": "Traces de brûlée", "source": null, "media_url": "https:\/\/www.facebook.com\/reel\/1321492030153330", "media_type": null, "date_confirmation": null, "exemple": false }, "geometry": { "type": "Point", "coordinates": [ -1.146339311303796, 44.395853961269523 ] } },
+{ "type": "Feature", "properties": { "adresse": "Rue forestière", "description": null, "source": null, "media_url": "https:\/\/www.sudouest.fr\/faits-divers\/incendies\/en-images-incendie-dans-les-landes-biscarrosse-en-feu-une-centaine-de-maisons-detruites-23-000-personnes-evacuees-30044815.php", "media_type": "", "date_confirmation": null, "exemple": false }, "geometry": { "type": "Point", "coordinates": [ -1.144780319892564, 44.384022145658463 ] } },
+{ "type": "Feature", "properties": { "adresse": null, "description": "Rue rosa bonheur", "source": null, "media_url": "https:\/\/www.facebook.com\/groups\/BiscarrosseMaVille\/permalink\/27836742459289845\/", "media_type": null, "date_confirmation": null, "exemple": false }, "geometry": { "type": "Point", "coordinates": [ -1.150725726116476, 44.399986689684219 ] } },
+{ "type": "Feature", "properties": { "adresse": "Rue rosa bonheur", "description": null, "source": null, "media_url": "https:\/\/www.facebook.com\/groups\/BiscarrosseMaVille\/permalink\/27836742459289845\/", "media_type": null, "date_confirmation": null, "exemple": false }, "geometry": { "type": "Point", "coordinates": [ -1.150705077223612, 44.399815598857629 ] } }
 ]
 }
